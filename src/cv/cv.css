@@ -1,0 +1,491 @@
+/* CV de Léo Regniez : une feuille A4 aux couleurs du portfolio.
+   Colonne sombre (le vide spatial), colonne claire pour la lecture et l'impression. */
+
+:root {
+  --vide: #05060b;
+  --lumiere: #ece8df;
+  --brume: #8a8fa3;
+  --regulus: #9cc9ff;
+  --ambre: #ffc46b;
+  /* sur fond blanc, les accents du site sont foncés pour rester lisibles */
+  --encre: #0d1020;
+  --encre-douce: #555b6e;
+  --regulus-encre: #2457a6;
+  --ambre-encre: #b66a00;
+  --filet: #dfe2ea;
+  --cote: 68mm;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html {
+  background: var(--vide);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(1px 1px at 20% 30%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 80%, #fff6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 85% 20%, #9cc9ffaa 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 65%, #fff5 50%, transparent 51%),
+    radial-gradient(ellipse at 50% 0%, #121633 0%, var(--vide) 60%);
+  background-size: 340px 340px, 420px 420px, 520px 520px, 290px 290px, 100% 100%;
+  color: var(--encre);
+  font-family: 'Inter Tight Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+ul,
+ol {
+  list-style: none;
+}
+:focus-visible {
+  outline: 2px solid var(--ambre);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ barre d'outils (écran) */
+.cv-barre {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+  background: rgb(5 6 11 / 0.92);
+  color: var(--lumiere);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+.cv-barre > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.cv-barre > a:hover {
+  color: var(--regulus);
+}
+.cv-barre-droite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.cv-langues {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.15rem;
+  border: 1px solid rgb(236 232 223 / 0.35);
+  border-radius: 99px;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 0.72rem;
+}
+.cv-langues button {
+  padding: 0.25rem 0.6rem;
+  border: 0;
+  border-radius: 99px;
+  background: none;
+  color: var(--brume);
+  font: inherit;
+  cursor: pointer;
+}
+.cv-langues button[aria-pressed='true'] {
+  background: var(--lumiere);
+  color: var(--vide);
+}
+.cv-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ambre);
+  border-radius: 99px;
+  background: var(--ambre);
+  color: var(--vide);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cv-bouton.secondaire {
+  background: none;
+  color: var(--lumiere);
+  border-color: rgb(236 232 223 / 0.35);
+}
+.cv-bouton:hover {
+  filter: brightness(1.08);
+}
+
+/* ------------------------------------------------------------------ la feuille */
+.cv-cadre {
+  --echelle: 1;
+  padding: 24px 12px;
+  overflow: hidden;
+}
+.cv-feuille {
+  position: relative;
+  left: 50%;
+  display: grid;
+  grid-template-columns: var(--cote) 1fr;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(156 201 255 / 0.12);
+  /* centrée, puis réduite pour tenir dans la largeur de l'écran */
+  transform: translateX(-50%) scale(var(--echelle));
+  transform-origin: top center;
+  font-size: 9pt;
+  line-height: 1.42;
+}
+
+/* ------------------------------------------------------------------ colonne sombre */
+.cv-cote {
+  display: flex;
+  flex-direction: column;
+  gap: 6.2mm;
+  padding: 11mm 7mm 8mm 8mm;
+  background:
+    radial-gradient(circle at 85% 6%, rgb(156 201 255 / 0.16), transparent 32%),
+    radial-gradient(1px 1px at 18% 42%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 58%, #fff5 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 76%, #fff6 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 34%, #fff5 50%, transparent 51%),
+    var(--vide);
+  color: var(--lumiere);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cv-photo {
+  position: relative;
+  width: 36mm;
+  height: 36mm;
+  margin: 0 auto 1mm;
+}
+.cv-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+/* une orbite fine, avec une petite étoile ambre, comme l'oculaire du télescope */
+.cv-orbite {
+  position: absolute;
+  inset: -2.4mm;
+  border: 0.25mm solid rgb(156 201 255 / 0.55);
+  border-radius: 50%;
+}
+.cv-orbite::after {
+  content: '';
+  position: absolute;
+  top: 3.4mm;
+  right: 3.4mm;
+  width: 2mm;
+  height: 2mm;
+  border-radius: 50%;
+  background: var(--ambre);
+  box-shadow: 0 0 2.5mm var(--ambre);
+}
+.cv-cote h2 {
+  margin-bottom: 2.4mm;
+  padding-bottom: 1.4mm;
+  border-bottom: 0.25mm solid rgb(236 232 223 / 0.22);
+  color: var(--lumiere);
+  font-family: 'Unbounded Variable', system-ui, sans-serif;
+  font-size: 9.2pt;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.cv-contact {
+  display: grid;
+  gap: 1.5mm;
+  font-size: 8.2pt;
+}
+.cv-contact li {
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  overflow-wrap: anywhere;
+}
+.cv-contact svg {
+  flex: none;
+  color: var(--regulus);
+}
+.cv-reseaux {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4mm;
+  margin-top: 2.6mm;
+}
+.cv-reseaux a {
+  padding: 0.7mm 2.4mm;
+  border: 0.25mm solid rgb(236 232 223 / 0.35);
+  border-radius: 99px;
+  font-size: 7.6pt;
+  font-weight: 600;
+}
+.cv-stack {
+  display: grid;
+  gap: 2.4mm;
+}
+.cv-stack dt {
+  color: var(--teinte);
+  font-size: 7.8pt;
+  font-weight: 700;
+}
+.cv-stack dd {
+  color: rgb(236 232 223 / 0.88);
+  font-size: 8pt;
+}
+.cv-langues-parlees {
+  display: flex;
+  gap: 5mm;
+}
+.cv-langues-parlees span {
+  margin-left: 0.8mm;
+  color: var(--brume);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 7.2pt;
+}
+.cv-interets {
+  color: rgb(236 232 223 / 0.88);
+}
+.cv-lion {
+  margin-top: auto;
+}
+.cv-lion svg {
+  display: block;
+  width: 100%;
+}
+.cv-lion line {
+  stroke: rgb(156 201 255 / 0.5);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+}
+.cv-lion line.futur {
+  stroke-dasharray: 1.5 2;
+  opacity: 0.6;
+}
+.cv-lion circle.vive {
+  fill: #fff;
+  filter: drop-shadow(0 0 1.4px #9cc9ff);
+}
+.cv-lion circle.faible {
+  fill: var(--brume);
+}
+.cv-lion figcaption {
+  margin-top: 1.4mm;
+  color: var(--brume);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 6.6pt;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ colonne principale */
+.cv-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 7mm;
+  padding: 12mm 11mm 9mm 10mm;
+}
+.cv-entete h1 {
+  color: var(--vide);
+  font-family: 'Unbounded Variable', system-ui, sans-serif;
+  font-size: 29pt;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.cv-titre {
+  margin-top: 3mm;
+  color: var(--regulus-encre);
+  font-family: 'Unbounded Variable', system-ui, sans-serif;
+  font-size: 11pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.cv-sous-titre {
+  margin-top: 1mm;
+  color: var(--encre-douce);
+  font-size: 9pt;
+}
+.cv-principal h2 {
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  margin-bottom: 3mm;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.3mm solid var(--filet);
+  color: var(--vide);
+  font-family: 'Unbounded Variable', system-ui, sans-serif;
+  font-size: 11.5pt;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.cv-repere {
+  width: 3.2mm;
+  height: 3.2mm;
+  fill: var(--regulus-encre);
+}
+.cv-note {
+  margin-left: auto;
+  color: var(--encre-douce);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 6.8pt;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.cv-badge {
+  display: inline-block;
+  margin: 0 1.6mm;
+  padding: 0.1mm 1.8mm;
+  border-radius: 99px;
+  background: var(--ambre);
+  color: var(--vide);
+  font-family: 'Inter Tight Variable', system-ui, sans-serif;
+  font-size: 6.6pt;
+  font-weight: 700;
+  line-height: 1.5;
+  vertical-align: 0.4mm;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* expériences et formations : un faisceau vertical relie les étapes, comme sur le site */
+.cv-etapes {
+  position: relative;
+  display: grid;
+  gap: 3mm;
+  padding-left: 4.5mm;
+}
+.cv-etapes::before {
+  content: '';
+  position: absolute;
+  left: 0.5mm;
+  top: 1.2mm;
+  bottom: 1mm;
+  width: 0.45mm;
+  background: linear-gradient(var(--ambre), #e0703a);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cv-etape {
+  position: relative;
+}
+.cv-etape::before {
+  content: '';
+  position: absolute;
+  left: -5.05mm;
+  top: 1.15mm;
+  width: 1.9mm;
+  height: 1.9mm;
+  border: 0.35mm solid #fff;
+  border-radius: 50%;
+  background: var(--ambre-encre);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.cv-etape-tete,
+.cv-projet-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3mm;
+}
+.cv-etape h3,
+.cv-projets h3 {
+  color: var(--vide);
+  font-size: 10pt;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.cv-lieu {
+  color: var(--encre-douce);
+  font-weight: 500;
+}
+.cv-periode {
+  flex: none;
+  color: var(--encre-douce);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 7.4pt;
+  white-space: nowrap;
+}
+.cv-etape p,
+.cv-projets p {
+  color: var(--encre);
+}
+.cv-technos {
+  margin-top: 0.4mm;
+  color: var(--regulus-encre) !important;
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 7.2pt;
+}
+
+/* projets : deux colonnes, comme une page de catalogue d'étoiles */
+.cv-projets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.6mm 6mm;
+}
+.cv-projets li {
+  padding-top: 2mm;
+  border-top: 0.25mm solid var(--filet);
+  break-inside: avoid;
+}
+.cv-projets li:nth-child(-n + 2) {
+  padding-top: 0;
+  border-top: 0;
+}
+.cv-projets p {
+  margin-top: 0.8mm;
+  font-size: 8.6pt;
+  line-height: 1.38;
+}
+.cv-projet-cat {
+  flex: none;
+  color: var(--encre-douce);
+  font-size: 7.2pt;
+}
+.cv-projet-etoile {
+  margin-left: 0.6mm;
+  color: var(--regulus-encre);
+  font-family: 'JetBrains Mono Variable', ui-monospace, monospace;
+  font-size: 6.6pt;
+}
+
+/* ------------------------------------------------------------------ impression / PDF */
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  html,
+  body {
+    width: 210mm;
+    height: 297mm;
+    background: #fff;
+  }
+  .cv-barre {
+    display: none;
+  }
+  .cv-cadre {
+    height: auto !important;
+    padding: 0;
+  }
+  .cv-feuille {
+    left: 0;
+    box-shadow: none;
+    transform: none;
+  }
+}

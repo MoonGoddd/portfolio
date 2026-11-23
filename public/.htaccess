@@ -1,0 +1,30 @@
+# Hébergement OVH (Apache) : HTTPS obligatoire, domaine sans « www », cache des fichiers.
+
+RewriteEngine On
+
+# HTTPS obligatoire (règle recommandée par OVH pour ses hébergements mutualisés)
+RewriteCond %{SERVER_PORT} 80
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# www.regniezleo.fr → regniezleo.fr
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,R=301]
+
+ErrorDocument 404 /index.html
+
+<IfModule mod_headers.c>
+  # Les fichiers de assets/ ont une empreinte dans leur nom : ils peuvent rester en cache un an.
+  <FilesMatch "\.(js|css|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # La page elle-même est revérifiée à chaque visite, pour voir tout de suite les mises à jour.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript image/svg+xml application/xml text/plain
+</IfModule>

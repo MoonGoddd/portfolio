@@ -1,0 +1,1327 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Variables : palette « Grossissements »
+   ========================================================================== */
+:root {
+  --vide: #05060b; /* fond : le vide spatial */
+  --lumiere: #ece8df; /* texte : lumière d'étoile */
+  --brume: #8a8fa3; /* texte secondaire */
+  --regulus: #9cc9ff; /* accent : le bleu-blanc de Regulus */
+  --ambre: #ffc46b; /* accent chaud */
+  --filet: rgb(236 232 223 / 0.16);
+
+  /* Éléments fixes (menu, HUD, curseur) : leurs couleurs suivent le niveau de grossissement */
+  --encre: var(--lumiere);
+  --encre-douce: var(--brume);
+  --repere: var(--ambre);
+  --fond-fixe: 5 6 11;
+
+  --gouttiere: clamp(1.25rem, 5vw, 3rem);
+  --largeur: 1120px;
+}
+html[data-niveau='2'] {
+  --fond-fixe: 11 10 26;
+}
+html[data-niveau='3'] {
+  --fond-fixe: 14 11 8;
+}
+/* Niveau 4 : le fond devient clair, l'encre devient sombre */
+html[data-niveau='4'] {
+  --encre: #05060b;
+  --encre-douce: #4a3410;
+  --repere: #05060b;
+  --fond-fixe: 255 196 107;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+html {
+  background: var(--vide);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--vide);
+  color: var(--lumiere);
+  font-family: theme('fontFamily.sans');
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+::selection {
+  background: var(--regulus);
+  color: var(--vide);
+}
+:focus-visible {
+  outline: 2px solid var(--ambre);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+[tabindex='-1']:focus {
+  outline: none;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Le cosmos : un canvas fixe derrière tout le contenu */
+.cosmos {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  /* Hauteur fixe (la plus grande fenêtre possible) : sur téléphone, quand la barre d'adresse
+     apparaît ou disparaît, le ciel ne se redimensionne pas et les étoiles ne sautent pas. */
+  height: 100vh;
+  height: 100lvh;
+  pointer-events: none;
+}
+.ouverture-piste,
+main,
+.cloture {
+  position: relative;
+  z-index: 1;
+}
+
+.conteneur {
+  width: min(var(--largeur), 100% - 2 * var(--gouttiere));
+  margin-inline: auto;
+}
+
+.evitement {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 200;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  background: var(--ambre);
+  color: var(--vide);
+  font-weight: 600;
+  transform: translateY(-250%);
+}
+.evitement:focus {
+  transform: none;
+}
+
+/* Révélations au scroll (seulement quand les animations sont actives) */
+.anime .reveler {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.anime .reveler.revele {
+  opacity: 1;
+  transform: none;
+}
+
+/* ==========================================================================
+   Menu
+   ========================================================================== */
+.menu {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: clamp(0.8rem, 2.4vw, 2rem);
+  padding: 1.1rem var(--gouttiere);
+  color: var(--encre);
+  font-size: 0.92rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+.menu::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -1.25rem 0;
+  z-index: -1;
+  background: linear-gradient(rgb(var(--fond-fixe) / 0.9), rgb(var(--fond-fixe) / 0));
+}
+.menu > * {
+  pointer-events: auto;
+}
+.menu a {
+  position: relative;
+  padding-block: 0.2rem;
+}
+.menu a::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.menu a:hover::after,
+.menu a.actif::after {
+  transform: scaleX(1);
+}
+.langues {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.15rem;
+  border: 1px solid color-mix(in srgb, var(--encre) 35%, transparent);
+  border-radius: 99px;
+  font-family: theme('fontFamily.mono');
+  font-size: 0.72rem;
+}
+.langues button {
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  color: var(--encre-douce);
+}
+.langues button[aria-pressed='true'] {
+  background: var(--encre);
+  color: rgb(var(--fond-fixe));
+}
+
+/* ==========================================================================
+   HUD du télescope
+   ========================================================================== */
+.hud {
+  color: var(--encre);
+}
+.hud-barre {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: 2px;
+}
+.hud-barre span {
+  display: block;
+  height: 100%;
+  background: var(--repere);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.hud-regle,
+.hud-mesures {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .conteneur {
+    width: min(var(--largeur), 100% - 340px);
+  }
+  .hud-barre {
+    display: none;
+  }
+  .hud-regle {
+    position: fixed;
+    left: 1.5rem;
+    top: 50%;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    transform: translateY(-50%);
+  }
+  .hud-regle a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-block: 0.1rem;
+    color: var(--encre-douce);
+    font-family: theme('fontFamily.mono');
+    font-size: 0.7rem;
+  }
+  .hud-trait {
+    width: 14px;
+    height: 1.5px;
+    background: currentColor;
+    transition: width 0.35s ease, background-color 0.35s ease;
+  }
+  .hud-nom {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .hud-regle .actif a {
+    color: var(--encre);
+  }
+  .hud-regle .actif .hud-trait {
+    width: 34px;
+    background: var(--repere);
+  }
+  .hud-regle .actif .hud-nom,
+  .hud-regle a:hover .hud-nom,
+  .hud-regle a:focus-visible .hud-nom {
+    opacity: 1;
+  }
+  .hud-mesures {
+    position: fixed;
+    left: 1.5rem;
+    top: 1.15rem;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    color: var(--encre-douce);
+    font-family: theme('fontFamily.mono');
+    font-size: 0.68rem;
+    line-height: 1.65;
+    pointer-events: none;
+  }
+}
+
+/* ==========================================================================
+   Curseur : réticule
+   ========================================================================== */
+.curseur-actif,
+.curseur-actif * {
+  cursor: none !important;
+}
+.curseur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  color: var(--encre);
+}
+.curseur.visible {
+  opacity: 1;
+}
+.curseur span {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.curseur span::before,
+.curseur span::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+.curseur span::before {
+  left: 50%;
+  top: -5px;
+  bottom: -5px;
+  width: 1px;
+  margin-left: -0.5px;
+  clip-path: polygon(0 0, 100% 0, 100% 9px, 0 9px, 0 calc(100% - 9px), 100% calc(100% - 9px), 100% 100%, 0 100%);
+}
+.curseur span::after {
+  top: 50%;
+  left: -5px;
+  right: -5px;
+  height: 1px;
+  margin-top: -0.5px;
+  clip-path: polygon(0 0, 9px 0, 9px 100%, 0 100%, 0 0, calc(100% - 9px) 0, calc(100% - 9px) 100%, 100% 100%, 100% 0);
+}
+.curseur.grand span {
+  transform: scale(1.7);
+  border-color: var(--repere);
+}
+
+/* ==========================================================================
+   Niveau 0 : l'oculaire (accueil)
+   ========================================================================== */
+.ouverture-piste {
+  height: 100svh;
+}
+/* Animations actives : l'accueil reste épinglé le temps d'entrer dans l'oculaire */
+.anime .ouverture-piste {
+  height: 185svh;
+}
+.ouverture {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.ouverture-contenu {
+  position: absolute;
+  inset: 0;
+}
+.anime .ouverture-contenu {
+  will-change: opacity, transform;
+}
+.paysage {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 100%;
+  height: 52svh;
+  pointer-events: none;
+}
+.accroche-cadre {
+  position: absolute;
+  inset: clamp(5.5rem, 17svh, 10.5rem) 0 auto 0;
+}
+.accroche {
+  max-width: 46rem;
+}
+.phrase {
+  font-family: theme('fontFamily.display');
+  font-weight: 500;
+  font-size: clamp(1.4rem, 3.05vw, 2.8rem);
+  line-height: 1.14;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.situation {
+  margin-top: 1.3rem;
+  color: var(--regulus);
+  font-weight: 600;
+}
+.invite {
+  display: none;
+  margin-top: 2.4rem;
+  color: var(--brume);
+  font-size: 0.9rem;
+}
+.anime .invite {
+  display: block;
+}
+.invite-fleche {
+  display: inline-block;
+  margin-left: 0.5rem;
+  animation: plonger 1.8s ease-in-out infinite;
+}
+.oculaire-point {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.anime .oculaire-point {
+  animation: battre 2.4s ease-in-out infinite;
+}
+
+.nom {
+  position: absolute;
+  /* Le nom est entier, posé au-dessus du bord de l'écran (lettres à jambage comprises) */
+  inset: auto 0 clamp(1rem, 4.5svh, 3rem) 0;
+  margin: 0;
+  color: var(--lumiere);
+  font-family: theme('fontFamily.display');
+  font-weight: 900;
+  /* limité par la hauteur aussi, pour ne pas toucher l'accroche sur les écrans peu hauts */
+  font-size: min(12.6vw, 24svh);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.lettre {
+  display: inline-block;
+}
+.anime .nom .lettre {
+  animation: allumer 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(0.3s + var(--i) * 85ms);
+}
+
+/* ==========================================================================
+   Bandeau défilant
+   ========================================================================== */
+.bandeau {
+  overflow: hidden;
+  padding-block: 0.95rem;
+  border-block: 1px solid var(--filet);
+}
+.bandeau-piste {
+  display: flex;
+  width: max-content;
+}
+.anime .bandeau-piste {
+  animation: defiler 60s linear infinite;
+}
+.bandeau-serie {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding-right: 1.6rem;
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 1.25rem;
+  white-space: nowrap;
+}
+.bandeau-mot {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+.bandeau svg {
+  width: 0.7em;
+  height: 0.7em;
+  fill: var(--regulus);
+}
+.bandeau-cible {
+  color: var(--ambre);
+  font-family: theme('fontFamily.mono');
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   Sections : en-tête commun
+   ========================================================================== */
+.section {
+  padding-block: clamp(5rem, 13vh, 9rem);
+}
+/* Sans cosmos (canvas indisponible), chaque section garde la teinte de son niveau */
+.section[data-niveau-section='2'] {
+  background: #0b0a1a;
+}
+.section[data-niveau-section='3'] {
+  background: #0e0b08;
+}
+.cosmos-pret .section {
+  background: transparent;
+}
+.entete {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
+  align-items: end;
+  margin-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+.titre {
+  font-family: theme('fontFamily.display');
+  font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+.sous-titre {
+  max-width: 36ch;
+  color: var(--brume);
+}
+
+.badge {
+  position: relative;
+  display: inline-block;
+  margin-left: 0.7rem;
+  padding: 0.16rem 0.6rem;
+  border-radius: 99px;
+  background: var(--ambre);
+  color: var(--vide);
+  font-family: theme('fontFamily.sans');
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+.anime .badge.pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--ambre);
+  animation: pulser 2.2s ease-out infinite;
+}
+
+.lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding-bottom: 2px;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1.5px no-repeat;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.lien:hover {
+  color: var(--regulus);
+  animation: scanner 0.45s ease-out;
+}
+
+/* ==========================================================================
+   Niveau 1 : la constellation (projets)
+   ========================================================================== */
+.projets-corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 42%);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+.projets-liste {
+  grid-column: 1;
+  grid-row: 1;
+}
+.constellation-cadre {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 18vh;
+}
+.projet {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6.25rem minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  padding-block: 1.6rem;
+}
+.projet::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--filet);
+}
+/* Le filet se trace de gauche à droite quand la ligne arrive à l'écran */
+.anime .projet::before {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.anime .projet.vu::before {
+  transform: scaleX(1);
+}
+.projet:last-child {
+  border-bottom: 1px solid var(--filet);
+}
+.projet-cat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-top: 0.2rem;
+  color: var(--brume);
+  font-size: 0.92rem;
+}
+.projet-etoile {
+  color: color-mix(in srgb, var(--regulus) 70%, var(--brume));
+  font-family: theme('fontFamily.mono');
+  font-size: 0.7rem;
+  transition: color 0.3s ease;
+}
+.projet-titre {
+  font-family: theme('fontFamily.display');
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  transition: color 0.3s ease;
+}
+.projet.survol .projet-titre,
+.projet.survol .projet-etoile {
+  color: var(--regulus);
+}
+.projet.vise {
+  animation: viser 1.8s ease-out;
+}
+.projet-desc {
+  max-width: 54ch;
+  margin-top: 0.55rem;
+}
+.projet-technos {
+  margin-top: 0.5rem;
+  color: var(--brume);
+  font-size: 0.92rem;
+}
+.projet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.4rem;
+  margin-top: 0.85rem;
+}
+.lien-details svg {
+  transition: transform 0.35s ease;
+}
+.lien-details[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+.accordeon {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.45s ease, visibility 0s 0.45s;
+}
+.accordeon.ouvert {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 0.45s ease, visibility 0s;
+}
+.accordeon-interieur {
+  min-height: 0;
+  overflow: hidden;
+}
+.details-texte,
+.details-listes {
+  max-width: 60ch;
+  margin-top: 1.1rem;
+  padding: 1rem 0 0.2rem 1rem;
+  border-left: 1.5px solid var(--regulus);
+  color: color-mix(in srgb, var(--lumiere) 88%, var(--brume));
+  font-size: 0.97rem;
+}
+.details-listes {
+  display: grid;
+  gap: 1rem;
+}
+.details-listes h4 {
+  margin-bottom: 0.25rem;
+  color: var(--regulus);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.details-listes li {
+  position: relative;
+  padding-left: 1rem;
+}
+.details-listes li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 0.7em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--brume);
+}
+
+/* La constellation du Lion */
+.constellation svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+.segment {
+  stroke: rgb(156 201 255 / 0.55);
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.anime .segment {
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.1s ease 0.15s;
+}
+.anime .segment.trace {
+  stroke-dashoffset: 0;
+}
+.segment.futur {
+  stroke-dasharray: 0.05 0.06;
+  stroke-dashoffset: 0;
+  opacity: 0.6;
+}
+.anime .segment.futur {
+  opacity: 0;
+  transition: opacity 0.8s ease 0.4s;
+}
+.anime .segment.futur.trace {
+  opacity: 0.6;
+}
+.etoile .coeur {
+  fill: var(--brume);
+  opacity: 0.4;
+  transition: fill 0.5s ease, opacity 0.5s ease;
+}
+.etoile .halo {
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.etoile .cible {
+  fill: transparent;
+}
+.etoile[data-cliquable] {
+  cursor: pointer;
+}
+.etoile text {
+  fill: var(--brume);
+  font-family: theme('fontFamily.mono');
+  font-size: 7.4px;
+  opacity: 0;
+  transition: opacity 0.5s ease, fill 0.3s ease;
+}
+.etoile.allumee .coeur {
+  fill: #fff;
+  opacity: 1;
+}
+.etoile.allumee .halo {
+  opacity: 0.75;
+  transform: scale(1);
+}
+.etoile.allumee text {
+  opacity: 0.85;
+}
+.etoile.a-venir.allumee .coeur {
+  fill: var(--brume);
+  opacity: 0.7;
+}
+.etoile.a-venir.allumee .halo {
+  opacity: 0.2;
+}
+.etoile.mineure .halo {
+  display: none;
+}
+.etoile.survol .halo {
+  opacity: 1;
+  transform: scale(1.7);
+}
+.etoile.survol .coeur {
+  fill: var(--ambre);
+}
+.etoile.survol text {
+  fill: var(--lumiere);
+  opacity: 1;
+}
+.constellation-legende {
+  min-height: 2.6em;
+  margin-top: 0.9rem;
+  color: var(--brume);
+  font-family: theme('fontFamily.mono');
+  font-size: 0.74rem;
+}
+
+/* ==========================================================================
+   Niveau 2 : la galaxie (stack)
+   ========================================================================== */
+.stack-corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+.stack-gauche {
+  grid-column: 1;
+  grid-row: 1;
+}
+.stack-gauche .entete {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1280px) {
+  .stack-gauche .entete {
+    grid-template-columns: auto 1fr;
+    gap: 2.5rem;
+  }
+}
+.stack-grille {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.4rem 2rem;
+}
+.galaxie-ancre {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: 14vh;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 74vh;
+}
+.galaxie-legende {
+  position: absolute;
+  inset: auto 0 0 0;
+  color: var(--brume);
+  font-family: theme('fontFamily.mono');
+  font-size: 0.72rem;
+  text-align: center;
+  opacity: 0;
+}
+.cosmos-pret .galaxie-legende {
+  opacity: 1;
+}
+.stack-bloc h3 {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 2px solid var(--teinte);
+  color: var(--teinte);
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+.stack-bloc li {
+  position: relative;
+  width: fit-content;
+  line-height: 1.75;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.stack-bloc li.actif {
+  color: var(--teinte);
+  transform: translateX(0.5rem);
+}
+.stack-langues {
+  grid-column: 1 / -1;
+}
+.stack-langues ul {
+  display: flex;
+  gap: 2rem;
+}
+.niveau-langue {
+  margin-left: 0.3rem;
+  color: var(--brume);
+  font-family: theme('fontFamily.mono');
+  font-size: 0.78rem;
+}
+
+/* ==========================================================================
+   Niveau 3 : le champ profond (parcours)
+   ========================================================================== */
+.etapes {
+  position: relative;
+  --avance: 1;
+}
+.faisceau {
+  position: absolute;
+  left: -1.4rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(var(--ambre), rgb(255 154 92 / 0.9) 60%, rgb(217 100 58 / 0.7));
+  transform: scaleY(var(--avance));
+  transform-origin: top;
+}
+.etape {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: 0.4rem 1.5rem;
+  padding-block: 1.5rem;
+  border-top: 1px solid var(--filet);
+}
+.etape:last-child {
+  border-bottom: 1px solid var(--filet);
+}
+.etape-date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 0.3rem 0;
+  color: var(--brume);
+}
+.etape-recul {
+  flex-basis: 100%;
+  color: color-mix(in srgb, var(--ambre) 75%, var(--brume));
+  font-family: theme('fontFamily.mono');
+  font-size: 0.7rem;
+}
+.etape-titre {
+  font-family: theme('fontFamily.display');
+  font-weight: 700;
+  font-size: 1.18rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.etape-phrase {
+  max-width: 52ch;
+  margin-top: 0.4rem;
+}
+.interets {
+  margin-top: 2.2rem;
+  color: var(--brume);
+  font-size: 0.92rem;
+}
+.interets span {
+  margin-right: 0.5rem;
+  color: var(--lumiere);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Zones de passage entre deux niveaux
+   ========================================================================== */
+.transition {
+  display: none;
+  /* Zone vide, plus haute que l'écran : on la traverse pendant que le cosmos grossit */
+  height: 180svh;
+}
+.anime .transition {
+  display: block;
+}
+/* La légende est fixée en bas de l'écran : elle reste lisible même si l'on défile vite */
+.legende-cadre {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: clamp(1.5rem, 9vh, 5rem);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.legende {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: min(30rem, 100% - 2 * var(--gouttiere));
+  padding: 0.85rem 1.4rem;
+  border: 1px solid var(--filet);
+  border-radius: 1.2rem;
+  background: rgb(5 6 11 / 0.72);
+  text-align: center;
+  opacity: 0;
+}
+.legende-titre {
+  font-family: theme('fontFamily.display');
+  font-weight: 600;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  line-height: 1.2;
+}
+.legende-note {
+  color: var(--brume);
+  font-family: theme('fontFamily.mono');
+  font-size: 0.74rem;
+}
+.transition[data-transition='4'] .legende-note {
+  color: color-mix(in srgb, var(--ambre) 80%, var(--lumiere));
+}
+
+/* ==========================================================================
+   Niveau 4 : le signal (contact)
+   ========================================================================== */
+.cloture {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100svh;
+  padding-block: 7rem 1.6rem;
+  background: var(--ambre);
+  color: #05060b;
+}
+.cosmos-pret .cloture {
+  background: transparent;
+}
+.cloture :focus-visible {
+  outline-color: #05060b;
+}
+.cloture-titre {
+  font-family: theme('fontFamily.display');
+  font-weight: 800;
+  font-size: clamp(2.5rem, 9.4vw, 8.4rem);
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+}
+.cloture-ligne {
+  display: block;
+  white-space: nowrap;
+}
+.anime .cloture-titre .lettre {
+  opacity: 0;
+}
+.anime .cloture-titre.vu .lettre {
+  animation: allumer-sombre 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+.cloture-phrase {
+  max-width: 44ch;
+  margin-top: 1.6rem;
+  font-weight: 500;
+}
+.courriel {
+  position: relative;
+  display: inline-block;
+  margin-top: 2rem;
+  padding-bottom: 0.22em;
+  font-family: theme('fontFamily.display');
+  font-weight: 700;
+  font-size: min(5.1vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+/* Soulignement : un trait droit au repos, une onde qui se propage au survol */
+.courriel::before,
+.courriel::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  transition: opacity 0.25s ease;
+}
+.courriel::after {
+  height: 0.07em;
+  min-height: 2px;
+  background: currentColor;
+}
+.courriel::before {
+  bottom: -5px;
+  height: 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='12' viewBox='0 0 40 12'%3E%3Cpath d='M0 6Q10 -3 20 6T40 6' fill='none' stroke='%2305060B' stroke-width='2.6'/%3E%3C/svg%3E") repeat-x 0 0 / 40px 12px;
+  opacity: 0;
+}
+.courriel:hover::after,
+.courriel:focus-visible::after {
+  opacity: 0;
+}
+.courriel:hover::before,
+.courriel:focus-visible::before {
+  opacity: 1;
+  animation: onde 0.9s linear infinite;
+}
+.pilules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 2.2rem;
+}
+.pilule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.62rem 1.15rem;
+  border-radius: 99px;
+  background: #05060b;
+  color: var(--lumiere);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background-color 0.25s ease, transform 0.25s ease;
+}
+.pilule:hover {
+  background: #1c2440;
+  transform: translateY(-2px);
+}
+.anime .cloture-titre.vu ~ .pilules li {
+  animation: monter 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(0.9s + var(--rang, 0) * 90ms);
+}
+.pilules li:nth-child(2) {
+  --rang: 1;
+}
+.pilules li:nth-child(3) {
+  --rang: 2;
+}
+.pilules li:nth-child(4) {
+  --rang: 3;
+}
+.pilules li:nth-child(5) {
+  --rang: 4;
+}
+.pied {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem 2rem;
+  margin-top: clamp(3rem, 9vh, 6rem);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+.retour {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-bottom: 2px;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1.5px no-repeat;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Animations
+   ========================================================================== */
+@keyframes allumer {
+  0% {
+    opacity: 0;
+    filter: blur(14px);
+    text-shadow: 0 0 0 rgb(156 201 255 / 0);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+    text-shadow: 0 0 40px rgb(156 201 255 / 0.9);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    text-shadow: 0 0 0 rgb(156 201 255 / 0);
+  }
+}
+@keyframes allumer-sombre {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+@keyframes defiler {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes plonger {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+@keyframes battre {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.5);
+  }
+}
+@keyframes pulser {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5, 1.9);
+  }
+}
+@keyframes scanner {
+  from {
+    background-size: 0 1.5px;
+  }
+  to {
+    background-size: 100% 1.5px;
+  }
+}
+@keyframes viser {
+  0%,
+  35% {
+    background: rgb(156 201 255 / 0.09);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes onde {
+  to {
+    background-position-x: 40px;
+  }
+}
+@keyframes monter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* ==========================================================================
+   Écrans étroits
+   ========================================================================== */
+@media (max-width: 860px) {
+  .entete {
+    grid-template-columns: 1fr;
+  }
+  .projets-corps,
+  .stack-corps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .projets-liste,
+  .constellation-cadre {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  /* Stack : titre, puis galaxie, puis listes */
+  .stack-corps {
+    display: flex;
+    flex-direction: column;
+  }
+  .stack-gauche {
+    display: contents;
+  }
+  .stack-gauche .entete {
+    order: 1;
+    margin-bottom: 0;
+  }
+  .galaxie-ancre {
+    order: 2;
+  }
+  .stack-grille {
+    order: 3;
+  }
+  /* Le menu devient un bandeau opaque : le contenu ne se lit plus à travers */
+  .menu::before {
+    inset: 0;
+    background: rgb(var(--fond-fixe) / 0.96);
+  }
+  /* La constellation passe au-dessus de la liste et reste collée sous le menu */
+  .constellation-cadre {
+    top: 3.3rem;
+    z-index: 5;
+    margin-inline: calc(-1 * var(--gouttiere));
+    padding: 0.5rem var(--gouttiere) 1.5rem;
+    background: linear-gradient(rgb(var(--fond-fixe)) calc(100% - 1.4rem), rgb(var(--fond-fixe) / 0));
+  }
+  .constellation svg {
+    width: auto;
+    height: min(20svh, 160px);
+    margin-inline: auto;
+  }
+  .constellation-legende {
+    min-height: 1.4em;
+    margin-top: 0.2rem;
+    text-align: center;
+  }
+  .galaxie-ancre {
+    position: relative;
+    top: auto;
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+  .faisceau {
+    left: -0.75rem;
+  }
+}
+@media (max-width: 560px) {
+  .menu {
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+  }
+  .projet {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .projet-cat {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+  .etape {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .etape-recul {
+    flex-basis: auto;
+    margin-left: auto;
+  }
+  .stack-grille {
+    gap: 2rem 1.25rem;
+  }
+  .paysage {
+    height: 40svh;
+  }
+  .nom {
+    font-size: min(13.4vw, 24svh);
+  }
+}
+
+/* ==========================================================================
+   Mouvement réduit : aucune animation, aucune transition
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

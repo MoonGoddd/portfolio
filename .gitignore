@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.idea
+_ancienne_version
+
+# fichiers temporaires
+*.log
+.DS_Store
