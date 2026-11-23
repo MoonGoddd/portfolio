@@ -21,7 +21,7 @@ export const profil = {
 export const contact = {
   email: 'regniez.leo12@gmail.com',
   liens: [
-    { id: 'github', nom: 'GitHub', url: 'https://github.com/LeoRegniez' },
+    { id: 'github', nom: 'GitHub', url: 'https://github.com/MoonGoddd' },
     { id: 'linkedin', nom: 'LinkedIn', url: 'https://www.linkedin.com/in/regniez-leo/' },
   ],
   // CV selon la langue du site (chemins relatifs à la racine du site)

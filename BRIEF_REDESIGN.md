@@ -125,7 +125,7 @@ Le texte est court, direct, à la première personne et un peu ironique. Il évi
 ### 4.2 Contact et liens
 - **E-mail** : regniez.leo12@gmail.com
 - **GitLab (IUT)** : https://gitlab.univ-artois.fr/leo_regniez1
-- **GitHub** : https://github.com/LeoRegniez (déduit du dépôt du portfolio)
+- **GitHub** : https://github.com/MoonGoddd
 - **LinkedIn** : https://www.linkedin.com/in/regniez-leo/
 - **CV** : `/cv/CV_Regniez_Leo_FR.pdf` et `/cv/CV_Regniez_Leo_EN.pdf`, **gardés tels quels** (décision de Léo). Bouton `Télécharger le CV` : FR par défaut, EN si le site est en anglais.
 - **Téléphone** : **retiré du site** (décision de Léo). Ne l'afficher nulle part.
@@ -141,7 +141,7 @@ Format de chaque ligne : catégorie · titre · description courte · technos ·
 | 4 | Zosma | Outil | O'De France | L'application de gestion d'une entreprise fictive de vente d'eau de source : produits, commandes et formulaires, en architecture MVC avec FXML. Projet d'équipe. | Java, JavaFX, FXML | aucun | Académique |
 | 5 | Chertan | Jeu | Chess | Un jeu d'échecs complet : déplacements validés selon les règles, détection de l'échec et du mat, historique des coups. | Java, HTML, CSS | aucun | Académique |
 | 6 | Adhafera | Web | UniqDay | Le site vitrine d'une agence fictive d'organisation de mariages : services, galerie, témoignages et demande de devis. Responsive. | HTML, CSS | aucun | Académique |
-| 7 | Rasalas | Web | Portfolio | Ce site, où l'on traverse l'espace par grossissements successifs. | React, Vite, Tailwind, GSAP, Canvas | `Code` → https://github.com/LeoRegniez/portfolio | Perso |
+| 7 | Rasalas | Web | Portfolio | Ce site, où l'on traverse l'espace par grossissements successifs. | React, Vite, Tailwind, GSAP, Canvas | `Code` → https://github.com/MoonGoddd/portfolio | Perso |
 | — | Algenubi | — | *(étoile faible, « à venir »)* | — | — | — | — |
 
 - **Le travail d'alternance n'apparaît pas dans les projets** (décision de Léo). L'alternance figure seulement dans le Parcours (§4.5), et ses technos dans la Stack (§4.4).

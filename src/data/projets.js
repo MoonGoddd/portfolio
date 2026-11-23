@@ -196,8 +196,8 @@ export const projets = [
       fr: 'Ce site, où l’on traverse l’espace par grossissements successifs.',
       en: 'This site, where you travel through space one magnification at a time.',
     },
-    technos: ['React', 'Vite', 'Tailwind', 'GSAP', 'Canvas'],
-    liens: [{ type: 'code', url: 'https://github.com/LeoRegniez/portfolio' }],
+    technos: ['React', 'Vite', 'Tailwind', 'Canvas'],
+    liens: [{ type: 'code', url: 'https://github.com/MoonGoddd/portfolio' }],
   },
 ];
 
